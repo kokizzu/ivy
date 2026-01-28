@@ -293,17 +293,10 @@ func innerProduct(c Context, u Value, left, right string, v Value) Value {
 			}
 		})
 		rank := len(u.shape) + len(v.shape) - 2
-		if rank == 1 {
-			return data.Publish()
-		}
 		shape := make([]int, rank)
 		copy(shape, u.shape[:len(u.shape)-1])
 		copy(shape[len(u.shape)-1:], v.shape[1:])
-		// Drop to vector if we can.
-		if len(shape) == 2 && (shape[0] == 1 || shape[len(shape)-1] == 1) {
-			return data.Publish()
-		}
-		return NewMatrix(c, shape, data.Publish())
+		return NewMatrix(c, shape, data.Publish()).shrink()
 	}
 	c.Errorf("can't do inner product on %s", whichType(c, u))
 	panic("not reached")

@@ -39,6 +39,9 @@ func (m *Matrix) shrink() Value {
 	if len(m.shape) == 1 {
 		return m.data
 	}
+	if len(m.shape) == 2 && (m.shape[0] == 1 || m.shape[1] == 1) {
+		return m.data
+	}
 	return m
 }
 
