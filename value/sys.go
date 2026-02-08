@@ -35,6 +35,7 @@ const sysHelp = `
 "read" file:  read the named file and return a vector of lines, with line termination stripped
 "sec":        the time in seconds since
                 Jan 1 00:00:00 1970 UTC
+"sleep":	  empty; as a binary, suspend execution for specified period in seconds
 "time":       the current time in the configured time zone as a vector; the last
               element is the time zone in which the other values apply:
                 year month day hour minute second seconds-east-of-UTC
@@ -45,7 +46,7 @@ The following commands also have a binary form that sets the value
 to the left argument and returns the previous value:
 
 	"base"     "format" "ibase"  "maxbits" "maxdigits"
-	"maxstack" "obase"  "origin" "prec" "prompt"
+	"maxstack" "obase"  "origin" "prec" "prompt" "sleep"
 
 
 To convert seconds to a time vector:
@@ -82,6 +83,16 @@ func sysInt(c Context, arg Value, op string) int {
 		c.Errorf("left argument (%s) for sys %q must be integer", v, op)
 	}
 	return int(v)
+}
+
+func sysFloat(c Context, arg Value, op string) float64 {
+	vv := arg.(*Vector) // We know it's a vector from unary.go.
+	if vv.Len() != 1 {
+		c.Errorf("left argument (%s) for sys %q must be number", arg, op)
+	}
+	bf := vv.At(0).toType("sys", c, bigFloatType).(BigFloat) // Will give error if char, that's ok.
+	f, _ := bf.Float.Float64()
+	return f
 }
 
 // for setting base.
@@ -223,6 +234,9 @@ var sys1 = map[string]func(conf *config.Config) Value{
 	"sec": func(conf *config.Config) Value {
 		return BigFloat{big.NewFloat(float64(time.Now().UnixNano()) / 1e9)}
 	},
+	"sleep": func(conf *config.Config) Value {
+		return empty
+	},
 	"time": func(conf *config.Config) Value {
 		return timeVec(time.Now().In(conf.Location()))
 	},
@@ -273,6 +287,9 @@ var sys2 = map[string]func(c Context, v Value){
 			c.Errorf("left argument of binary sys 'prompt' must be string")
 		}
 		c.Config().SetPrompt(vecText(vv))
+	},
+	"sleep": func(c Context, v Value) {
+		time.Sleep(time.Duration(sysFloat(c, v, "sleep") * 1e9)) // Duration is in nanoseconds.
 	},
 }
 

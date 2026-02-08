@@ -190,3 +190,9 @@ rho sys 'read' 'testdata/empty.txt'
 )prompt
 	""
 	">> "
+
+# Adds a tenth of a second to all test runs, but that granularity is likely OK on all systems.
+delta=.1
+a=sys 'sec'; delta sys 'sleep'; b = sys 'sec'; (b-a) >= delta
+	1
+
