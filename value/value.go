@@ -116,7 +116,7 @@ func ParseNumber(c Context, s string) (Value, error) {
 		return binaryBigRatOp(c, v1.toType("rat", c, bigRatType), (*big.Rat).Quo, rden), nil
 	}
 	// Not a rational, but might be something like 1.3e-2 and therefore
-	// become a rational.
+	// become a rational. All float values can be represented as rationals, in fact.
 	i, err := setIntString(conf, s)
 	if err == nil {
 		return i, nil

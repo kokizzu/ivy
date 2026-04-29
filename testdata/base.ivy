@@ -108,3 +108,26 @@ abc/123 234
 # Hexadecimal floating point
 0x1.0 0x1.0p3 0x1.0p-2 0x1_2.p2 0x1p1
 	1 8 1/4 72 2
+
+# Other bases while reading floating-point number format.
+# Yes, you can use 0b or 0o or 0x prefixes, but honor ibase anyway.
+# The base must be 0 or 10 (easy; 0 the default) or 2, 8, or 16.
+
+# First 100 bits of the prime constant (base 2, 1 bit at each prime).
+)ibase 2
+)format .12g
+0.0110101000101000101000100000101000001000101000100000100000101000001000101000001000100000100000001000
+	0.414682509851
+
+)ibase 2
+0.1
+	1/2
+
+)ibase 8
+0.4
+	1/2
+
+)ibase 16
+0.8
+	1/2
+

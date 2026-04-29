@@ -5,7 +5,6 @@
 package value
 
 import (
-	"errors"
 	"fmt"
 	"math/big"
 	"strings"
@@ -17,19 +16,59 @@ type BigRat struct {
 
 // The input is known to be in floating-point syntax.
 // If there's a slash, the parsing is done in Parse().
+// Bases allowed: 0, 2, 8, 10, or 16.
 func setBigRatFromFloatString(c Context, s string) (br BigRat, err error) {
 	// Be safe: Verify that it is floating-point, because otherwise
-	// we need to honor ibase.
+	// we need to honor arbitrary ibase.
 	if !strings.ContainsAny(s, ".eEpP") {
 		// Most likely a number like "08".
 		c.Errorf("bad number syntax: %s", s)
+		return BigRat{}, fmt.Errorf("bad number syntax: %q")
 	}
+	ibase := 0
+	if c != nil { // Happens during const.go initialization, fixing would create import cycle.
+		ibase, _ = c.Config().Base()
+	}
+	if strings.Contains(s, "p") || strings.Contains(s, "P") {
+		ibase = 16 // Force hexadecimal; overrides ibase.
+	}
+	// Rat.SetString uses prefix to indicate input base.
 	var ok bool
+	switch ibase {
+	case 0, 10:
+		// Base 10, the default.
+		ok = true
+	case 2:
+		s, ok = basify(s, "0b", 2)
+	case 8:
+		s, ok = basify(s, "0o", 8)
+	case 16:
+		s, ok = basify(s, "0x", 16)
+	}
+	if !ok {
+		return BigRat{}, fmt.Errorf("cannot input floating-point number in base %d", ibase)
+	}
 	r, ok := big.NewRat(0, 1).SetString(s)
 	if !ok {
-		return BigRat{}, errors.New("floating-point number syntax")
+		return BigRat{}, fmt.Errorf("floating-point number syntax: %q", s)
 	}
 	return BigRat{r}, nil
+}
+
+// basify updates, if necessary, the string to add the prefix required for the base
+// when parsed by big.Rat.SetString. The returned boolean will be false for
+// unsupported bases.
+func basify(s, prefix string, base int) (string, bool) {
+	switch base {
+	case 0, 10:
+		return s, true
+	case 2, 8, 16:
+		if !strings.HasPrefix(s, prefix) {
+			s = prefix + s
+		}
+		return s, true
+	}
+	return "", false
 }
 
 func (r BigRat) String() string {

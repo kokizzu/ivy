@@ -51,7 +51,7 @@ spaces, is a single rational number, not the expression 1 divided
 by 3. This can affect precedence: 3/6*4 is 2 while 3 / 6*4 is 1/8
 since the spacing turns the / into a division operator. Use parentheses
 or spaces to disambiguate: 3/(6*4) or 3 /6*4.
-<p>Ivy has complex numbers, which are constructed using the unary or
+<p>Ivy has complex numbers, which are constructed using the
 binary j operator. As with rationals, the token 1j2 (the representation
 of 1+2i) is a single token. The individual parts can be rational,
 so 1/2j-3/2 is the complex number 0.5-1.5i and scans as a single
