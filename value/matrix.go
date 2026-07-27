@@ -1034,7 +1034,11 @@ func (m *Matrix) inverse(c Context) Value {
 	for y := 0; y < dim; y++ {
 		row := t[y]
 		for x := 0; x < dim; x++ {
-			row[x] = m.data.At(i)
+			val := m.data.At(i)
+			if !IsScalarType(c, val) {
+				c.Errorf(nonScalar)
+			}
+			row[x] = val
 			i++
 			if x%dim == y {
 				row[dim+x] = one
@@ -1044,26 +1048,19 @@ func (m *Matrix) inverse(c Context) Value {
 		}
 	}
 
-	mustBeScalar := func(v Value) Value {
-		if !IsScalarType(c, v) {
-			c.Errorf(nonScalar)
-		}
-		return v
-	}
-
 	// Convert left half to the identity matrix using whole-row operations.
 	// The resulting augmented matrix will be in echelon form.
 	for x := 0; x < dim; x++ {
 		for y := 0; y < dim; y++ {
 			thisRow := t[y]
-			val := mustBeScalar(thisRow[x])
+			val := thisRow[x]
 			if y == x {
 				if isZero(val) {
 					found := false
 					// Swap this row with a lower row. We know left of this column it's all zeros below.
 					for i := y + 1; i < dim && !found; i++ {
 						swapRow := t[i]
-						swapVal := mustBeScalar(swapRow[x])
+						swapVal := swapRow[x]
 						if !isZero(swapVal) {
 							for j := 0; j < 2*dim; j++ {
 								thisRow[j], swapRow[j] = swapRow[j], thisRow[j]
