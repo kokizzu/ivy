@@ -1000,6 +1000,10 @@ func (m *Matrix) grade(c Context) *Vector {
 //	  (3 3) (4 4)
 //
 // So they are forbidden.
+//
+// The algorithm is Gaussian elimination, converting the matrix, augmented by
+// appending the identity matrix on the right, into echelon form. After this is
+// done, the right half of the augmented matrix is the inverse.
 func (m *Matrix) inverse(c Context) Value {
 	const (
 		nonInvertible = "inverse of non-invertible matrix"
@@ -1040,17 +1044,38 @@ func (m *Matrix) inverse(c Context) Value {
 		}
 	}
 
+	mustBeScalar := func(v Value) Value {
+		if !IsScalarType(c, v) {
+			c.Errorf(nonScalar)
+		}
+		return v
+	}
+
 	// Convert left half to the identity matrix using whole-row operations.
+	// The resulting augmented matrix will be in echelon form.
 	for x := 0; x < dim; x++ {
 		for y := 0; y < dim; y++ {
 			thisRow := t[y]
-			val := thisRow[x]
-			if !IsScalarType(c, val) {
-				c.Errorf(nonScalar)
-			}
+			val := mustBeScalar(thisRow[x])
 			if y == x {
 				if isZero(val) {
-					c.Errorf(nonInvertible)
+					found := false
+					// Swap this row with a lower row. We know left of this column it's all zeros below.
+					for i := y + 1; i < dim && !found; i++ {
+						swapRow := t[i]
+						swapVal := mustBeScalar(swapRow[x])
+						if !isZero(swapVal) {
+							for j := 0; j < 2*dim; j++ {
+								thisRow[j], swapRow[j] = swapRow[j], thisRow[j]
+							}
+							val = swapVal
+							found = true
+						}
+					}
+					if !found {
+						// No suitable rows to swap.
+						c.Errorf(nonInvertible)
+					}
 				}
 				// This is the diagonal. We want a one here.
 				scale := c.EvalUnary("/", val) // Invert so we can multiply in loop.
@@ -1091,7 +1116,8 @@ func (m *Matrix) inverse(c Context) Value {
 			}
 		}
 	}
-	// Now extract the right hand side of the working area.
+	// Now extract the right hand side of the augmented matrix.
+	// The left side is the identity matrix, by construction.
 	data := newVectorEditor(0, nil)
 	for _, row := range t {
 		data.Append(row[dim:]...)
