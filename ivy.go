@@ -94,7 +94,7 @@ func main() {
 	value.SetDebugContext(exec.NewContext(&debugConf))
 
 	if *debugFlag != "" {
-		for _, debug := range strings.Split(*debugFlag, ",") {
+		for debug := range strings.SplitSeq(*debugFlag, ",") {
 			if !conf.SetDebug(debug, 1) {
 				fmt.Fprintf(os.Stderr, "ivy: unknown debug flag %q\n", debug)
 				os.Exit(2)
@@ -111,7 +111,7 @@ func main() {
 	}
 
 	if *library != "" {
-		for _, name := range strings.Split(*library, ",") {
+		for name := range strings.SplitSeq(*library, ",") {
 			entry := lib.Lookup(name)
 			if entry == nil {
 				fmt.Fprintf(os.Stderr, "ivy: unknown library %q\n", name)

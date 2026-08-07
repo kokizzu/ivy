@@ -7,6 +7,7 @@ package value
 import (
 	"bytes"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -211,8 +212,8 @@ func (e VectorExpr) Eval(context Context) Value {
 	// This also means things like
 	//	x=1000; x + x=2
 	// (yielding 4) work.
-	for i := len(e) - 1; i >= 0; i-- {
-		v.Set(i, e[i].Eval(context))
+	for i, v0 := range slices.Backward(e) {
+		v.Set(i, v0.Eval(context))
 	}
 	return v.Publish()
 }
@@ -361,7 +362,7 @@ func (e *VarExpr) ProgString() string {
 
 // IsCompound reports whether the item is a non-trivial expression tree, one that
 // may require parentheses around it when printed to maintain correct evaluation order.
-func IsCompound(x interface{}) bool {
+func IsCompound(x any) bool {
 	switch x := x.(type) {
 	case Char, Int, BigInt, BigRat, BigFloat, Complex, *Vector, *Matrix:
 		return false
@@ -473,17 +474,17 @@ func FlushState(expr Expr) {
 		FlushState(e.Right)
 		FlushState(e.Left)
 	case *IndexExpr:
-		for i := len(e.Right) - 1; i >= 0; i-- {
-			x := e.Right[i]
+		for _, x := range slices.Backward(e.Right) {
+
 			if x != nil { // Not a placeholder index.
-				FlushState(e.Right[i])
+				FlushState(x)
 			}
 		}
 		FlushState(e.Left)
 	case *VarExpr:
 	case VectorExpr:
-		for i := len(e) - 1; i >= 0; i-- {
-			FlushState(e[i])
+		for _, v := range slices.Backward(e) {
+			FlushState(v)
 		}
 	case Char:
 	case Int:

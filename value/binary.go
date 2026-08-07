@@ -1057,10 +1057,7 @@ func init() {
 						}
 						return v.At(i)
 					}
-					n := A.Len()
-					if B.shape[0] > n {
-						n = B.shape[0]
-					}
+					n := max(B.shape[0], A.Len())
 					pfor(true, n, elems.Len(), func(lo, hi int) {
 						for j := lo; j < hi; j++ {
 							result := Value(zero)

@@ -6,6 +6,7 @@ package value
 
 import (
 	"math/big"
+	"slices"
 )
 
 func sin(c Context, v Value) Value {
@@ -99,7 +100,7 @@ func floatCos(c Context, x *big.Float) *big.Float {
 // sincos iterates a sin or cos Taylor series.
 func sincos(name string, c Context, index int, x *big.Float, z *big.Float, exp uint64, factorial *big.Float) *big.Float {
 	term := newFloat(c).Set(floatOne)
-	for j := 0; j < index; j++ {
+	for range index {
 		term.Mul(term, x)
 	}
 	xN := newFloat(c).Set(term)
@@ -144,8 +145,8 @@ func twoPiReduce(c Context, x *big.Float) {
 			multiples = append(multiples, newFloat(c).Set(multiple))
 		}
 		// From the right, subtract big multiples.
-		for i := len(multiples) - 1; i >= 0; i-- {
-			multiple := multiples[i]
+		for _, multiple := range slices.Backward(multiples) {
+
 			for x.Cmp(multiple) >= 0 {
 				x.Sub(x, multiple)
 			}

@@ -61,8 +61,8 @@ func (ix *indexState) init(c Context, top, left Expr, lvarx *VarExpr, index []Ex
 			ix.indexes[i] = x.Data()
 			// Append shape in reverse, because ix.shape will be reversed below.
 			shape := x.Shape()
-			for j := len(shape) - 1; j >= 0; j-- {
-				ix.outShape = append(ix.outShape, shape[j])
+			for _, s := range slices.Backward(shape) {
+				ix.outShape = append(ix.outShape, s)
 			}
 		}
 	}
@@ -245,7 +245,7 @@ func Index(context Context, top, left Expr, index []Expr) Value {
 		}
 	} else {
 		coord := make([]int, ix.indexDim)
-		for i := 0; i < n; i++ {
+		for i := range n {
 			// Copy data for indexes[coord].
 			offset := 0
 			for j := 0; j < len(ix.indexes); j++ {

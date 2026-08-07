@@ -970,7 +970,7 @@ func init() {
 					lo := 0
 					hi := size - elemSize
 					for lo < hi {
-						for i := 0; i < elemSize; i++ {
+						for i := range elemSize {
 							xl, xh := x.At(lo+i), x.At(hi+i)
 							x.Set(lo+i, xh)
 							x.Set(hi+i, xl)

@@ -154,7 +154,7 @@ func (m *Matrix) sprint(c Context) []string {
 		// If it's all chars, print it without padding or quotes.
 		if m.data.AllChars() {
 			var lines []string
-			for i := 0; i < nrows; i++ {
+			for i := range nrows {
 				// TODO what about embedded newlines?
 				lines = append(lines, NewVectorSeq(m.data.Slice(i*ncols, (i+1)*ncols)).Sprint(c))
 			}
@@ -218,7 +218,7 @@ func (m *Matrix) higherDim(c Context, prefix string, indentation int) []string {
 	dim := m.shape[0]
 	rest := strings.Repeat(" *", m.Rank()-1)[1:]
 	var lines []string
-	for i := 0; i < dim; i++ {
+	for i := range dim {
 		inner := Matrix{
 			shape: m.shape[1:],
 			data:  NewVectorSeq(m.data.Slice(i*m.ElemSize(c), m.data.Len())),
@@ -969,7 +969,7 @@ func (m *Matrix) grade(c Context) *Vector {
 	sort.Slice(x, func(i, j int) bool {
 		i = x[i] * stride
 		j = x[j] * stride
-		for k := 0; k < stride; k++ {
+		for k := range stride {
 			cmp := OrderedCompare(c, v.At(i+k), v.At(j+k))
 			if cmp == 0 {
 				continue
@@ -1031,9 +1031,9 @@ func (m *Matrix) inverse(c Context) Value {
 		t[i] = make([]Value, 2*dim)
 	}
 	i := 0
-	for y := 0; y < dim; y++ {
+	for y := range dim {
 		row := t[y]
-		for x := 0; x < dim; x++ {
+		for x := range dim {
 			val := m.data.At(i)
 			if !IsScalarType(c, val) {
 				c.Errorf(nonScalar)
@@ -1050,8 +1050,8 @@ func (m *Matrix) inverse(c Context) Value {
 
 	// Convert left half to the identity matrix using whole-row operations.
 	// The resulting augmented matrix will be in echelon form.
-	for x := 0; x < dim; x++ {
-		for y := 0; y < dim; y++ {
+	for x := range dim {
+		for y := range dim {
 			thisRow := t[y]
 			val := thisRow[x]
 			if y == x {

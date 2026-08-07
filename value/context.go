@@ -156,7 +156,7 @@ type Context interface {
 
 	// Errorf reports an execution error and halts execution
 	// by panicking with type Error.
-	Errorf(format string, args ...interface{})
+	Errorf(format string, args ...any)
 
 	// TraceIndent returns an indentation marker showing the depth of the stack.
 	TraceIndent() string

@@ -215,7 +215,7 @@ func pfor(ok bool, size, n int, f func(lo, hi int)) {
 	if q := n * size / pforMinWork; q < p {
 		p = q
 	}
-	c := make(chan interface{}, p)
+	c := make(chan any, p)
 	for i := 0; i < p; i++ {
 		lo, hi := i*n/p, (i+1)*n/p
 		go func() {
@@ -223,7 +223,7 @@ func pfor(ok bool, size, n int, f func(lo, hi int)) {
 			f(lo, hi)
 		}()
 	}
-	var err interface{}
+	var err any
 	for i := 0; i < p; i++ {
 		if e := <-c; e != nil {
 			err = e
@@ -234,7 +234,7 @@ func pfor(ok bool, size, n int, f func(lo, hi int)) {
 	}
 }
 
-func sendRecover(c chan<- interface{}) {
+func sendRecover(c chan<- any) {
 	c <- recover()
 }
 
@@ -551,7 +551,7 @@ func eachMatrix(c Context, m *Matrix, dim int) iter.Seq[Value] {
 	}
 	size := m.data.Len()
 	if size > 0 {
-		for d := 0; d < dim; d++ {
+		for d := range dim {
 			size /= m.shape[d]
 		}
 	}
